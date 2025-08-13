@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Ultra Snake/title>
+  <link rel="stylesheet" href="snake.css">
+</head>
+<body>
+<div class="app theme-neon" id="app">
+  <div class="toolbar">
+    <div class="brand">
+      <div style="width:26px;height:26px;border-radius:7px;background: radial-gradient(circle at 30% 30%, var(--accent), transparent 60%), radial-gradient(circle at 70% 70%, #8a5eff, transparent 60%), #0f2238; box-shadow: 0 0 20px rgba(77,226,255,0.5), inset 0 0 20px rgba(138,94,255,0.25);"></div>
+      <h1>Ultra Snake</h1>
+      <span class="chip">v1.0</span>
+    </div>
+
+    <div class="controls">
+      <label class="toggle"><input id="opponentToggle" type="checkbox" checked> Opponent</label>
+      <select id="difficulty" class="select">
+        <option>Easy</option>
+        <option selected>Normal</option>
+        <option>Hard</option>
+      </select>
+      <select id="theme" class="select">
+        <option value="neon" selected>Neon</option>
+        <option value="retro">Retro</option>
+        <option value="classic">Classic</option>
+      </select>
+      <label class="toggle"><input id="soundToggle" type="checkbox" checked> Sound</label>
+      <button id="startBtn" class="button primary">Start / Restart</button>
+      <button id="pauseBtn" class="button ghost">Pause</button>
+    </div>
+  </div>
+
+  <div class="hud" id="hud">
+    <div class="stat">Score: <span id="score">0</span></div>
+    <div class="stat">Opponent: <span id="opponentScore">0</span></div>
+    <div class="stat">High: <span id="high">0</span></div>
+    <div class="stat">Lives: <span id="lives">3</span></div>
+    <div class="stat"><small>Grid</small> <span id="gridInfo">—</span></div>
+    <div class="legend">
+      <div class="item"><svg viewBox="0 0 64 64"> <use href="#svg-ice"/></svg> Ice (<kbd>Space</kbd>)</div>
+      <div class="item"><svg viewBox="0 0 64 64"> <use href="#svg-ally"/></svg> Ally (auto)</div>
+      <div class="item"><svg viewBox="0 0 64 64"> <use href="#svg-life"/></svg> +1 Life</div>
+    </div>
+  </div>
+
+  <div class="board-wrap" id="boardWrap" style="height: calc(100vh - 200px);">
+    <canvas id="board"></canvas>
+    <div class="lifebar" id="lifeBar" hidden>
+      <div class="fill" id="lifeFill"></div>
+      <div class="label" id="lifeLabel">Opponent 100%</div>
+    </div>
+    <div class="overlay" id="overlay">
+      <div class="panel">
+        <h2>How to Play</h2>
+        <p>Move with <kbd>WASD</kbd> or <kbd>Arrow Keys</kbd>. Shoot an ice shard with <kbd>Space</kbd> (if you picked up the Ice power‑up) to <b>freeze</b> the opponent. Some power‑ups summon a temporary <b>purple ally snake</b> that hunts the opponent.</p>
+        <p>Collect food to grow and score. Avoid walls, yourself, and the opponent. Extra lives occasionally spawn as a green mushroom.</p>
+        <p><b>Options:</b> Toggle Opponent, switch Difficulty, and change Theme from the top bar. High score saves automatically.</p>
+        <p style="opacity:.8">Tip: In Hard, the opponent moves faster and evades better, freeze time is shorter, and power‑ups are rarer.</p>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button id="overlayStart" class="button primary">Start</button>
+          <button id="overlayClose" class="button">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Theme designed to auto-fit your screen size.</div>
+    <div>© manuelml55 — Web Developer</div>
+  </div>
+</div>
+
+<!-- Personalized SVGs for power‑ups (kept inline and also used in-canvas via data URLs) -->
+<svg width="0" height="0" style="position:absolute; left:-9999px; top:-9999px;">
+  <defs>
+    <!-- Ice crystal: cyan fractal snowflake -->
+    <symbol id="svg-ice" viewBox="0 0 64 64">
+      <g filter="url(#glow-ice)">
+        <path d="M32 4 L36 12 L44 16 L36 20 L32 28 L28 20 L20 16 L28 12 Z" fill="#7ee6ff" opacity="0.95"/>
+        <path d="M32 36 L36 44 L44 48 L36 52 L32 60 L28 52 L20 48 L28 44 Z" fill="#7ee6ff" opacity="0.95"/>
+        <path d="M4 32 L12 28 L16 20 L20 28 L28 32 L20 36 L16 44 L12 36 Z" fill="#a9f0ff"/>
+        <path d="M60 32 L52 28 L48 20 L44 28 L36 32 L44 36 L48 44 L52 36 Z" fill="#a9f0ff"/>
+        <circle cx="32" cy="32" r="6" fill="#cfffff" />
+      </g>
+    </symbol>
+
+    <!-- Ally token: purple comet/snake emblem -->
+    <symbol id="svg-ally" viewBox="0 0 64 64">
+      <defs>
+        <linearGradient id="allyGrad" x1="0" x2="1">
+          <stop offset="0" stop-color="#a06bff"/>
+          <stop offset="1" stop-color="#ff7bff"/>
+        </linearGradient>
+      </defs>
+      <g filter="url(#glow-ally)">
+        <path d="M10 34 C20 26, 32 18, 48 16 C52 15, 56 18, 54 22 C51 28, 42 32, 36 36 C30 40, 28 46, 22 50 C18 52, 12 50, 12 46 C12 42, 16 38, 20 36 Z" fill="url(#allyGrad)"/>
+        <circle cx="48" cy="20" r="6" fill="#ffe1ff"/>
+        <circle cx="50" cy="20" r="2" fill="#7a2bff"/>
+      </g>
+    </symbol>
+
+    <!-- Extra life: original green mushroom (not SM IP) -->
+    <symbol id="svg-life" viewBox="0 0 64 64">
+      <g filter="url(#glow-life)">
+        <path d="M12 30 C14 18, 26 10, 32 10 C38 10, 50 18, 52 30 C52 31, 51 33, 48 34 C40 36, 24 36, 16 34 C13 33, 12 31, 12 30 Z" fill="#37e064"/>
+        <circle cx="24" cy="24" r="5" fill="#d6ffd6"/>
+        <circle cx="40" cy="24" r="5" fill="#d6ffd6"/>
+        <rect x="18" y="34" width="28" height="14" rx="6" ry="6" fill="#ffe9c0"/>
+        <circle cx="28" cy="40" r="3" fill="#e1c59a"/>
+        <circle cx="36" cy="40" r="3" fill="#e1c59a"/>
+      </g>
+    </symbol>
+
+    <!-- SVG filters for soft glows -->
+    <filter id="glow-ice"><feGaussianBlur stdDeviation="0.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow-ally"><feGaussianBlur stdDeviation="0.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow-life"><feGaussianBlur stdDeviation="0.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+</svg>
+<script src="snake.js"></script>
+</body>
+</html>
